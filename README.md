@@ -1,71 +1,71 @@
-# Welcome to your Lovable project
+# jwAI Project
 
-## Project info
+## Overview
 
-**URL**: https://lovable.dev/projects/706959a1-db98-49e2-81a3-32263edf69e9
+Welcome to the jwAI project, a modern web application leveraging cutting-edge technologies for rapid development and deployment.
 
-## How can I edit this code?
+## Editing the Code
 
-There are several ways of editing your application.
+You have multiple options for editing and maintaining your codebase:
 
-**Use Lovable**
+### Local Development
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/706959a1-db98-49e2-81a3-32263edf69e9) and start prompting.
+For full control and flexibility, clone the repository and work locally using your preferred IDE (such as Visual Studio Code).
 
-Changes made via Lovable will be committed automatically to this repo.
+**Prerequisites:**  
+- [Node.js & npm](https://github.com/nvm-sh/nvm#installing-and-updating)
 
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
+**Setup Instructions:**
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
+# Clone the repository
 git clone <YOUR_GIT_URL>
 
-# Step 2: Navigate to the project directory.
+# Navigate to the project directory
 cd <YOUR_PROJECT_NAME>
 
-# Step 3: Install the necessary dependencies.
-npm i
+# Install dependencies
+npm install
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Start the development server
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+### GitHub Web Editor
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+- Browse to the desired file in your GitHub repository.
+- Click the pencil icon to edit.
+- Commit your changes directly from the browser.
 
-**Use GitHub Codespaces**
+### GitHub Codespaces
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+- On your repository page, click "Code" > "Codespaces" > "New codespace".
+- Instantly launch a cloud-based development environment.
+- Edit, test, and commit changes seamlessly.
 
-## What technologies are used for this project?
+## Technology Stack
 
-This project is built with:
+This project utilizes:
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+- **Vite** — Lightning-fast build tool
+- **TypeScript** — Strongly typed JavaScript
+- **React** — Declarative UI library
+- **shadcn-ui** — Accessible UI components
+- **Tailwind CSS** — Utility-first CSS framework
 
-## How can I deploy this project?
+## Deployment
 
-Simply open [Lovable](https://lovable.dev/projects/706959a1-db98-49e2-81a3-32263edf69e9) and click on Share -> Publish.
+You can deploy this project using:
 
-## Can I connect a custom domain to my Lovable project?
+- [Vercel](https://vercel.com/) — Effortless cloud deployment with instant previews and custom domain support.
+- **Google Cloud Platform (GCP)** — Deploy to your own server for maximum control and scalability.
 
-Yes, you can!
+Refer to the respective platform documentation for deployment steps.
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+## Custom Domain Integration
+
+Both Vercel and GCP support custom domain configuration.  
+Consult their documentation for instructions on connecting your domain and managing DNS settings.
+
+---
+
+*Done by Cheruiyot Brian*
