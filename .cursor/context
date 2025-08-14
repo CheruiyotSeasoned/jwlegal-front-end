@@ -1,0 +1,65 @@
+.cursor:
+  overview:
+    - "Develop AI Legal Engineering course for law students."
+    - "Build AI-powered legal research application to streamline client service."
+    - "Position the firm as 'AI-ready' to attract future-facing legal clients."
+
+  ai_strategy:
+    - "Integrate ChatGPT with Kenya Law APIs for real-time legal data access."
+    - "Implement local model training using Kenyan legal data to improve relevance."
+    - "Apply human-in-the-loop review before submission of AI-generated advice."
+    - "Track accuracy improvement via structured lawyer feedback."
+
+  user_interfaces:
+    - "Dual interface: mobile app for clients, web dashboard for professionals."
+    - "Role-based dashboards: General Public, Lawyers, Law Firms, Judicial Officers."
+    - "Enable OCR for document uploads to support AI analysis of legal texts."
+
+  user_experience:
+    - "Categorize cases: Traffic, Criminal, Civil, Constitutional with dropdown filters."
+    - "Offer guided legal issue descriptions to help non-lawyers articulate cases."
+    - "Include navigation for both laypeople and legal professionals."
+
+  business_model:
+    - "Adopt freemium pricing: basic access is free, premium is tiered by usage."
+    - "Tier names: Bronze (50 req/month), Gold (100 req/month), Enterprise (custom)."
+    - "Urgency-based pricing: charge more for 24hr delivery than 2-week turnarounds."
+    - "Separate 'heavy brief' category with specialized research pricing."
+
+  quality_control:
+    - "Implement multi-layered admin system with super admin privileges."
+    - "Lawyers rated on each task; internal code to track performance."
+    - "Require legal vetting of AI outputs before delivery to users."
+
+  compliance:
+    - "Comply with Kenya Data Protection Act (DPA): register as data processor/controller."
+    - "Secure express client consent for any data handling."
+    - "Restrict access to Kenya-based users; verify citizenship via national ID."
+    - "Review LSK marketing and advertising code for legal boundaries."
+    - "Register business name under BRS and protect IP of app concept."
+
+  ethics_and_limits:
+    - "Support student research ethically; avoid full essay assistance in Kenya."
+    - "Expand later to support judicial officers (judges, magistrates) in research tasks."
+
+  tasks_by_role:
+    emmanuel_sharp:
+      - "Remove 'jurisdiction' dropdown; focus only on Kenya with county sub-filter."
+      - "Develop multi-login system per user type."
+      - "Design mobile-first interface for public users."
+      - "Create tiered pricing + urgency add-ons."
+      - "Restrict platform access to Kenyan IPs."
+      - "Define heavy brief logic + payment structure."
+      - "Build admin + lawyer-rating system."
+
+    juliana_njiriri:
+      - "Submit example case for testing legal AI workflow."
+      - "Outline judiciary-specific dashboard requirements."
+      - "Begin data controller registration process."
+      - "Confirm student module scope (research vs. essay writing)."
+      - "Register business and verify IP strategy."
+      - "Review and align with LSK conduct code."
+
+    susan_moraa:
+      - "Find contact at ODPC to assist with registration."
+      - "Research legal requirements for DPA registration compliance."
