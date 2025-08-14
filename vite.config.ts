@@ -8,6 +8,7 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
+    allowedHosts: ['legalbuddy.aiota.online'],
     proxy: {
       '/api/kenya-law': {
         target: 'https://new.kenyalaw.org',
