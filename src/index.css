@@ -67,6 +67,46 @@ All colors MUST be HSL.
     --sidebar-border: 220 13% 91%;
 
     --sidebar-ring: 217.2 91.2% 59.8%;
+      /* Legal AI specific tokens */
+    --legal-blue: 221 83% 53%;
+    --legal-dark: 222 84% 5%;
+    --legal-gray: 215 16% 47%;
+    --legal-light: 210 40% 96%;
+    
+    /* Gradients */
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(210 40% 98%) 100%);
+    
+    /* Action card colors */
+    --action-copy: 45 96% 89%;
+    --action-image: 213 100% 92%;
+    --action-avatar: 142 76% 88%;
+    --action-code: 316 76% 92%;
+    
+    /* Shadows */
+    --shadow-card: 0 4px 6px -1px hsl(220 13% 69% / 0.1), 0 2px 4px -1px hsl(220 13% 69% / 0.06);
+    --shadow-hover: 0 10px 15px -3px hsl(221 83% 53% / 0.1), 0 4px 6px -2px hsl(221 83% 53% / 0.05);
+    
+    /* Animations */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+    --radius: 0.75rem;
+
+    /* --sidebar-background: 0 0% 98%;
+
+    --sidebar-foreground: 240 5.3% 26.1%;
+
+    --sidebar-primary: 240 5.9% 10%;
+
+    --sidebar-primary-foreground: 0 0% 98%;
+
+    --sidebar-accent: 240 4.8% 95.9%;
+
+    --sidebar-accent-foreground: 240 5.9% 10%;
+
+    --sidebar-border: 220 13% 91%;
+
+    --sidebar-ring: 217.2 91.2% 59.8%; */
   }
 
   .dark {
@@ -106,6 +146,7 @@ All colors MUST be HSL.
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
+  
 }
 
 @layer base {

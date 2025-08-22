@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import Index from "./pages/Index";
+import ClientPage from "./pages/ClientPage";
 import Login from "./pages/Login";
 import AdminDashboard from "./pages/AdminDashboard";
 import UserDashboard from "./pages/UserDashboard";
@@ -35,11 +36,13 @@ import JudicialResearch from "./pages/JudicialResearch";
 import JudicialPrecedents from "./pages/JudicialPrecedents";
 import JudicialCalendar from "./pages/JudicialCalendar";
 import Signup from "./pages/signup";
+import { ThemeProvider } from "next-themes";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
+    <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
     <TooltipProvider>
       <AuthProvider>
         <Toaster />
@@ -48,6 +51,9 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/signup" element={<Signup />} /> 
             <Route path="/login" element={<Login />} />
+            <Route path="/app" element={<ClientPage />} />
+            
+            {/* Public Routes */}
             
             {/* Admin Routes */}
             <Route path="/admin-dashboard" element={<AdminDashboard />} />
@@ -87,7 +93,8 @@ const App = () => (
         </BrowserRouter>
       </AuthProvider>
     </TooltipProvider>
-  </QueryClientProvider>
+    </ThemeProvider>
+    </QueryClientProvider>
 );
 
 export default App;

@@ -45,14 +45,14 @@ export const Hero = () => {
 
               {/* CTA Buttons */}
               <div className="flex flex-col sm:flex-row gap-4">
-                <Button 
-                  size="lg" 
-                  className="bg-legal-primary hover:bg-legal-primary/90 text-primary-foreground shadow-legal group"
-                  onClick={() => setIsLegalAIOpen(true)}
+                <a
+                  href="/app"
+                  className="inline-flex items-center justify-center px-6 py-3 rounded-md text-lg font-medium bg-legal-primary hover:bg-legal-primary/90 text-primary-foreground shadow-legal group transition-colors"
                 >
                   Start Free Research
                   <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                </Button>
+                </a>
+
                 <Button 
                   size="lg" 
                   variant="outline" 
@@ -86,6 +86,27 @@ export const Hero = () => {
             </div>
 
             {/* Right Content - Hero Image */}
+            {/* <div style={{ height: '600px', position: 'relative' }}>
+              <CardSwap
+                cardDistance={60}
+                verticalDistance={70}
+                delay={5000}
+                pauseOnHover={false}
+              >
+                <Card>
+                  <h3>Card 1</h3>
+                  <p>legal AI</p>
+                </Card>
+                <Card>
+                  <h3>Card 2</h3>
+                  <p>Your content here</p>
+                </Card>
+                <Card>
+                  <h3>Card 3</h3>
+                  <p>Your content here</p>
+                </Card>
+              </CardSwap>
+            </div> */}
             <div className="relative">
               <div className="relative">
                 <img 
@@ -94,7 +115,6 @@ export const Hero = () => {
                   className="w-full h-auto rounded-lg shadow-legal"
                 />
               </div>
-              {/* Floating Elements */}
               <div className="absolute -top-4 -right-4 bg-legal-secondary text-white px-4 py-2 rounded-lg text-sm font-medium shadow-lg z-10">
                 Kenya Law APIs
               </div>

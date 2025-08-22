@@ -66,7 +66,11 @@ export default {
 					primary: 'hsl(var(--legal-primary))',
 					secondary: 'hsl(var(--legal-secondary))',
 					accent: 'hsl(var(--legal-accent))',
-					muted: 'hsl(var(--legal-muted))'
+					muted: 'hsl(var(--legal-muted))',
+					blue: 'hsl(var(--legal-blue))',
+					dark: 'hsl(var(--legal-dark))',
+					gray: 'hsl(var(--legal-gray))',
+					light: 'hsl(var(--legal-light))'
 				}
 			},
 			backgroundImage: {
@@ -103,7 +107,12 @@ export default {
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out'
-			}
+			},
+			fontFamily: {
+				'legal': ['Crimson Text', 'Times New Roman', 'serif'],
+				'legal-display': ['Playfair Display', 'Georgia', 'serif'],
+				'legal-body': ['Source Serif Pro', 'Times New Roman', 'serif'],
+			},
 		}
 	},
 	plugins: [require("tailwindcss-animate")],
