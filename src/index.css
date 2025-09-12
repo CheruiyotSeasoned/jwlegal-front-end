@@ -41,11 +41,11 @@ All colors MUST be HSL.
     --legal-secondary: 38 100% 50%;
     --legal-accent: 0 84% 20%;
     --legal-muted: 210 20% 92%;
-    
+
     /* Gradients */
     --gradient-legal: linear-gradient(135deg, hsl(var(--legal-primary)), hsl(var(--legal-secondary)));
     --gradient-hero: linear-gradient(180deg, hsl(var(--background)) 0%, hsl(var(--legal-muted)) 100%);
-    
+
     /* Shadows */
     --shadow-legal: 0 10px 25px -10px hsl(var(--legal-primary) / 0.2);
     --shadow-card: 0 4px 12px -4px hsl(var(--legal-primary) / 0.1);
@@ -67,25 +67,25 @@ All colors MUST be HSL.
     --sidebar-border: 220 13% 91%;
 
     --sidebar-ring: 217.2 91.2% 59.8%;
-      /* Legal AI specific tokens */
+    /* Legal AI specific tokens */
     --legal-blue: 221 83% 53%;
     --legal-dark: 222 84% 5%;
     --legal-gray: 215 16% 47%;
     --legal-light: 210 40% 96%;
-    
+
     /* Gradients */
     --gradient-card: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(210 40% 98%) 100%);
-    
+
     /* Action card colors */
     --action-copy: 45 96% 89%;
     --action-image: 213 100% 92%;
     --action-avatar: 142 76% 88%;
     --action-code: 316 76% 92%;
-    
+
     /* Shadows */
     --shadow-card: 0 4px 6px -1px hsl(220 13% 69% / 0.1), 0 2px 4px -1px hsl(220 13% 69% / 0.06);
     --shadow-hover: 0 10px 15px -3px hsl(221 83% 53% / 0.1), 0 4px 6px -2px hsl(221 83% 53% / 0.05);
-    
+
     /* Animations */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     --transition-bounce: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
@@ -146,7 +146,7 @@ All colors MUST be HSL.
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
-  
+
 }
 
 @layer base {
@@ -161,6 +161,7 @@ All colors MUST be HSL.
 
 /* Modern sidebar enhancements */
 @layer components {
+
   /* Smooth transitions for sidebar elements */
   [data-sidebar="sidebar"] {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -189,9 +190,17 @@ All colors MUST be HSL.
   }
 
   @keyframes gradient-shift {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
+    0% {
+      background-position: 0% 50%;
+    }
+
+    50% {
+      background-position: 100% 50%;
+    }
+
+    100% {
+      background-position: 0% 50%;
+    }
   }
 
   /* Glow effect for important elements */
@@ -223,9 +232,12 @@ All colors MUST be HSL.
   }
 
   @keyframes pulse {
-    0%, 100% {
+
+    0%,
+    100% {
       opacity: 1;
     }
+
     50% {
       opacity: 0.8;
     }
@@ -252,4 +264,18 @@ All colors MUST be HSL.
     background: rgba(0, 0, 0, 0.1);
     border: 1px solid rgba(255, 255, 255, 0.1);
   }
+
+  /* in your global.css */
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+    /* Chrome, Safari */
+  }
+
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    /* IE & Edge */
+    scrollbar-width: none;
+    /* Firefox */
+  }
+
 }

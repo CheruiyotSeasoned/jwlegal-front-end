@@ -65,26 +65,29 @@ const getLegalQuickPrompts = (legalArea) => {
 };
 
 // Document assistance handler
-const handleDocumentAssistance = (documentType) => {
-  const documentQuestions = {
+const handleDocumentAssistance = (
+  documentType: string,
+  setInputValue: (val: string) => void,
+  setSelectedLegalArea: (val: string) => void
+) => {
+  const documentQuestions: Record<string, string> = {
     contract_review: "I need help reviewing a contract. What should I look for in terms of legal compliance?",
     employment: "I'm having issues at work. Can you guide me on employment law protections?",
     land_law: "I'm buying/selling property. What legal requirements must I fulfill?",
     procedure: "I need to go to court. What are the procedures I should follow?"
   };
-  // Required state variables for your main component:
-const [inputValue, setInputValue] = useState("");
-const [selectedLegalArea, setSelectedLegalArea] = useState("general");
+
   const question = documentQuestions[documentType];
   if (question) {
     setInputValue(question);
-    // Auto-set the appropriate legal area
-    const areaMapping = {
+
+    const areaMapping: Record<string, string> = {
       contract_review: "contract_law",
-      employment: "employment_law", 
+      employment: "employment_law",
       land_law: "land_law",
       procedure: "general"
     };
+
     setSelectedLegalArea(areaMapping[documentType] || "general");
   }
 };

@@ -1,92 +1,91 @@
 import { Button } from "@/components/ui/button";
-import { Scale, Menu, User } from "lucide-react";
+import { Menu, User } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import Logo from "@/assets/yellow-blue-removebg-preview.png";
 
 export const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
-    <header className="bg-background border-b border-legal-muted sticky top-0 z-50">
+    <header className="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
       <div className="container mx-auto px-4 lg:px-6">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <div className="flex items-center space-x-2">
-            <Scale className="h-8 w-8 text-legal-primary" />
-            <div className="flex flex-col">
-              <span className="text-xl font-bold text-legal-primary">Legal Buddy</span>
-              <span className="text-xs text-muted-foreground">AI-Powered Legal Research</span>
-            </div>
-          </div>
+          <Link to="/" className="flex items-center space-x-2">
+            <img src={Logo} alt="Legal Buddy Logo" className="h-10 w-auto" />
+            <span className="hidden sm:block text-xs text-gray-500">
+              AI-Powered Legal Research
+            </span>
+          </Link>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-6">
-            <a href="#features" className="text-foreground hover:text-legal-primary transition-colors">
-              Features
-            </a>
-            <a href="#user-types" className="text-foreground hover:text-legal-primary transition-colors">
-              User Types
-            </a>
-            <a href="#pricing" className="text-foreground hover:text-legal-primary transition-colors">
-              Pricing
-            </a>
-            <a href="#about" className="text-foreground hover:text-legal-primary transition-colors">
-              About
-            </a>
+            {["Features", "User Types", "Pricing", "About"].map((item) => (
+              <a
+                key={item}
+                href={`#${item.toLowerCase().replace(" ", "-")}`}
+                className="text-gray-700 hover:text-[#003580] font-medium transition-colors"
+              >
+                {item}
+              </a>
+            ))}
           </nav>
 
           {/* Desktop CTA */}
           <div className="hidden md:flex items-center space-x-3">
             <Link to="/login">
-              <Button variant="outline" className="border-legal-primary text-legal-primary hover:bg-legal-primary hover:text-primary-foreground">
+              <Button
+                variant="outline"
+                className="border-[#003580] text-[#003580] hover:bg-[#003580] hover:text-white"
+              >
                 <User className="h-4 w-4 mr-2" />
                 Sign In
               </Button>
             </Link>
             <Link to="/signup">
-  <Button variant="outline" className="bg-legal-primary hover:bg-legal-primary/90 text-primary-foreground w-full">
-    Get Started
-  </Button>
-</Link>
+              <Button className="bg-[#FEA919] hover:bg-[#e68c0c] text-white">
+                Get Started
+              </Button>
+            </Link>
           </div>
 
           {/* Mobile menu button */}
           <Button
             variant="outline"
             size="icon"
-            className="md:hidden"
+            className="md:hidden border-gray-300"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
           >
-            <Menu className="h-4 w-4" />
+            <Menu className="h-5 w-5 text-gray-700" />
           </Button>
         </div>
 
         {/* Mobile Navigation */}
         {isMenuOpen && (
-          <div className="md:hidden border-t border-legal-muted">
+          <div className="md:hidden border-t border-gray-200 bg-white shadow-md animate-slideDown">
             <nav className="py-4 space-y-3">
-              <a href="#features" className="block py-2 text-foreground hover:text-legal-primary transition-colors">
-                Features
-              </a>
-              <a href="#user-types" className="block py-2 text-foreground hover:text-legal-primary transition-colors">
-                User Types
-              </a>
-              <a href="#pricing" className="block py-2 text-foreground hover:text-legal-primary transition-colors">
-                Pricing
-              </a>
-              <a href="#about" className="block py-2 text-foreground hover:text-legal-primary transition-colors">
-                About
-              </a>
+              {["Features", "User Types", "Pricing", "About"].map((item) => (
+                <a
+                  key={item}
+                  href={`#${item.toLowerCase().replace(" ", "-")}`}
+                  className="block py-2 text-gray-700 hover:text-[#003580] font-medium transition-colors"
+                >
+                  {item}
+                </a>
+              ))}
               <div className="pt-3 space-y-2">
                 <Link to="/login" className="block">
-                  <Button variant="outline" className="w-full border-legal-primary text-legal-primary hover:bg-legal-primary hover:text-primary-foreground">
+                  <Button className="w-full border-[#003580] text-[#003580] hover:bg-[#003580] hover:text-white">
                     <User className="h-4 w-4 mr-2" />
                     Sign In
                   </Button>
                 </Link>
-                <Button className="w-full bg-legal-primary hover:bg-legal-primary/90 text-primary-foreground">
-                  Get Started
-                </Button>
+                <Link to="/signup" className="block">
+                  <Button className="w-full bg-[#FEA919] hover:bg-[#e68c0c] text-white">
+                    Get Started
+                  </Button>
+                </Link>
               </div>
             </nav>
           </div>

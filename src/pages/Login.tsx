@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth, User } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { toast } from '@/components/ui/use-toast';
 import {
   Card,
   CardContent,
@@ -12,13 +13,16 @@ import {
 } from '@/components/ui/card';
 import { useNavigate, Link } from 'react-router-dom';
 import { Scale, ArrowLeft } from 'lucide-react';
+import { GoogleLogin, CredentialResponse } from '@react-oauth/google';
+import { jwtDecode } from 'jwt-decode';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { login, user } = useAuth();
+  const { login, user , setUser} = useAuth(); // <-- make sure your hook exposes setUser
   const navigate = useNavigate();
+  const [googleLoading, setGoogleLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,7 +31,6 @@ const Login = () => {
     try {
       await login(email, password);
 
-      // Wait for user to be populated (if async)
       if (user?.role === 'admin') {
         navigate('/admin-dashboard');
       } else {
@@ -35,11 +38,58 @@ const Login = () => {
       }
     } catch (error) {
       console.error('Login failed:', error);
-      // You can also show a toast/error here
     } finally {
       setIsLoading(false);
     }
   };
+
+
+  const handleGoogleLogin = async (credentialResponse: CredentialResponse) => {
+    if (!credentialResponse.credential) {
+      toast({ variant: "destructive", title: "Google login failed: no credential returned" });
+      return;
+    }
+
+    setGoogleLoading(true);
+
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/auth/google-login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id_token: credentialResponse.credential }),
+      });
+
+      if (!res.ok) throw new Error(await res.text());
+
+      const data = await res.json();
+      const accessToken = data.access_token;
+      localStorage.setItem("token", accessToken);
+
+      const userResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/auth/me`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+
+      if (!userResponse.ok) throw new Error("Failed to fetch user info");
+
+      const userData: User = await userResponse.json();
+      setUser(userData);  // ✅ push user into global context
+      localStorage.setItem("user", JSON.stringify(userData));
+
+      toast({ variant: "default", title: `Welcome back, ${userData.name || userData.email}!` });
+
+      setTimeout(() => {
+        if (userData.role === "admin") navigate("/admin-dashboard");
+        else navigate("/user-dashboard");
+      }, 500);
+    } catch (err) {
+      console.error("Google login error:", err);
+      toast({ variant: "destructive", title: "Google login failed" });
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
+
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5 flex items-center justify-center p-4">
@@ -98,6 +148,22 @@ const Login = () => {
                 {isLoading ? 'Signing in...' : 'Sign In'}
               </Button>
             </form>
+
+            {/* Divider */}
+            <div className="my-4 flex items-center">
+              <div className="flex-grow border-t border-gray-300"></div>
+              <span className="px-2 text-muted-foreground text-sm">OR</span>
+              <div className="flex-grow border-t border-gray-300"></div>
+            </div>
+
+            {/* Google Login */}
+            <div className="flex justify-center">
+              <GoogleLogin
+                onSuccess={handleGoogleLogin}
+                onError={() => console.error('Google Login Failed')}
+              />
+            </div>
+
             {/* After the form */}
             <div className="mt-4 text-sm text-center">
               Don't have an account?{' '}
@@ -105,7 +171,6 @@ const Login = () => {
                 Create one
               </Link>
             </div>
-
 
             {/* Demo Credentials */}
             <div className="mt-6 p-4 bg-muted rounded-lg">
@@ -124,3 +189,4 @@ const Login = () => {
 };
 
 export default Login;
+

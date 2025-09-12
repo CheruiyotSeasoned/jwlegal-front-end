@@ -6,13 +6,13 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  Send, 
-  Bot, 
-  User, 
-  FileText, 
-  Search, 
-  BookOpen, 
+import {
+  Send,
+  Bot,
+  User,
+  FileText,
+  Search,
+  BookOpen,
   Gavel,
   Sparkles,
   Copy,
@@ -42,7 +42,7 @@ interface Message {
   statuteReference?: string;
 }
 
-interface KenyaLawCase {
+export interface KenyaLawCase {
   id: string;
   title: string;
   citation: string;
@@ -52,7 +52,9 @@ interface KenyaLawCase {
   summary: string;
   explainers?: {
     relevance: string;
-    highlight: string;
+    highlight: {
+      content: string[];  // <-- fix here: highlight is an object with content array
+    };
     case_importance: string;
   };
   attorneys?: string[] | null;
@@ -75,8 +77,8 @@ interface KenyaLawCase {
   attachments?: string[];
   precedents?: string[];
   legislation?: string[];
+  gpt_reasoning?: string[];
 }
-
 interface KenyaLawStatute {
   id: string;
   title: string;
@@ -105,16 +107,16 @@ export default function CaseDialog({ open, onOpenChange, caseType, caseTitle, ca
   ]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState('chat');
+  const [activeTab, setActiveTab] = useState('cases');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // API Configuration
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api';
 
   // Case law state
-  const [relevantCases, setRelevantCases] = useState<{cases: KenyaLawCase[], totalResults: number}>({ 
-    cases: [], 
-    totalResults: 0 
+  const [relevantCases, setRelevantCases] = useState<{ cases: KenyaLawCase[], totalResults: number }>({
+    cases: [],
+    totalResults: 0
   });
   const [localCases, setLocalCases] = useState<KenyaLawCase[]>([]);
   const [caseFilters, setCaseFilters] = useState({
@@ -165,7 +167,7 @@ export default function CaseDialog({ open, onOpenChange, caseType, caseTitle, ca
   // Update debounced filters when caseFilters change
   useEffect(() => {
     debounceFilters(caseFilters);
-    
+
     // Cleanup timeout on unmount
     return () => {
       if (debounceTimeoutRef.current) {
@@ -181,7 +183,7 @@ export default function CaseDialog({ open, onOpenChange, caseType, caseTitle, ca
 
     // For non-text fields, update immediately
     const immediateFields = ['searchType', 'year', 'court', 'minRelevance'];
-    const hasImmediateChange = Object.keys(newFilters).some(key => 
+    const hasImmediateChange = Object.keys(newFilters).some(key =>
       immediateFields.includes(key) && newFilters[key as keyof typeof newFilters] !== undefined
     );
 
@@ -190,113 +192,140 @@ export default function CaseDialog({ open, onOpenChange, caseType, caseTitle, ca
     }
   };
   // Function to fetch full case details
-const [caseData, setCaseData] = useState(null);
-const fetchCaseDetails = async (caseId: string): Promise<KenyaLawCase | null> => {
+  const [caseData, setCaseData] = useState(null);
+  const fetchCaseDetails = async (caseId: string): Promise<KenyaLawCase | null> => {
 
-  try {
-    // Handle mock local cases
-    if (caseId.startsWith('local-')) {
-      const localCase = mockLocalCases.find(c => c.id === caseId);
-      return localCase || null;
-    }
-
-    // Fetch both metadata and full content
-    const [metaRes, fullRes] = await Promise.all([
-      fetch(`${API_BASE_URL}/kenyalaw/document/${caseId}`), // Your index/search endpoint
-      fetch(`${API_BASE_URL}/kenyalaw/document/html/${caseId}`) // Your full doc endpoint
-    ]);
-
-    if (!metaRes.ok && !fullRes.ok) {
-      throw new Error(`Failed to fetch case details for ${caseId}`);
-    }
-
-    const metaDoc = metaRes.ok ? await metaRes.json() : {};
-    const fullDoc = fullRes.ok ? await fullRes.json() : {};
-
-    // Merge: fullDoc takes priority for content, metaDoc for missing fields
-    const doc = { ...metaDoc, ...fullDoc };
-
-    /** ───── Parties Extraction ───── **/
-    let partiesData = doc.parties;
-    if (!partiesData) {
-      const titleText = doc.title || '';
-      const match = titleText.match(/(.+?)\s+v(?:s\.?)?\s+(.+)/i);
-      if (match) {
-        partiesData = {
-          plaintiff: match[1].split(',').map(p => p.trim()),
-          defendant: match[2].split(',').map(p => p.trim()),
-        };
-      } else {
-        partiesData = { plaintiff: [], defendant: [] };
+    try {
+      // Handle mock local cases
+      if (caseId.startsWith('local-')) {
+        const localCase = mockLocalCases.find(c => c.id === caseId);
+        return localCase || null;
       }
+
+      // Fetch both metadata and full content
+      const [metaRes, fullRes] = await Promise.all([
+        fetch(`${API_BASE_URL}/kenyalaw/document/${caseId}`), // Your index/search endpoint
+        fetch(`${API_BASE_URL}/kenyalaw/document/html/${caseId}`) // Your full doc endpoint
+      ]);
+
+      if (!metaRes.ok && !fullRes.ok) {
+        throw new Error(`Failed to fetch case details for ${caseId}`);
+      }
+
+      const metaDoc = metaRes.ok ? await metaRes.json() : {};
+      const fullDoc = fullRes.ok ? await fullRes.json() : {};
+
+      // Merge: fullDoc takes priority for content, metaDoc for missing fields
+      const doc = { ...metaDoc, ...fullDoc };
+
+      /** ───── Parties Extraction ───── **/
+      let partiesData = doc.parties;
+      if (!partiesData) {
+        const titleText = doc.title || '';
+        const match = titleText.match(/(.+?)\s+v(?:s\.?)?\s+(.+)/i);
+        if (match) {
+          partiesData = {
+            plaintiff: match[1].split(',').map(p => p.trim()),
+            defendant: match[2].split(',').map(p => p.trim()),
+          };
+        } else {
+          partiesData = { plaintiff: [], defendant: [] };
+        }
+      }
+
+      /** ───── Overview ───── **/
+      let overviewText =
+        doc.overview || doc.case_overview || doc.summary || null;
+      if (!overviewText && (doc.full_text || doc.content_html)) {
+        const firstParagraph = (doc.full_text || doc.content_html)
+          .split(/\n\s*\n/)[0];
+        if (firstParagraph) overviewText = firstParagraph.trim();
+      }
+
+      /** ───── Judgment References ───── **/
+      const judgmentReferences = [
+        ...(doc.references || []),
+        ...(doc.judgment_references || []),
+        ...(doc.references_cases || []),
+        ...(doc.references_legislation || []),
+        ...(doc.citations || [])
+      ].filter(Boolean);
+
+      /** ───── Relevance Normalization ───── **/
+      const normalizedRelevance = doc._score
+        ? parseFloat((doc._score / 100).toFixed(3))
+        : doc.relevance || 0.5;
+
+      /** ───── Explainability ───── **/
+      const explainers = {
+        relevance: `This case matched your query with a normalized score of ${normalizedRelevance}. Original score: ${doc._score || 'N/A'}.`,
+        highlight: {
+          content: doc.highlight?.content?.length
+            ? doc.highlight.content
+            : ['No specific search term highlights available.']
+        },
+        case_importance: `This ${doc.nature?.toLowerCase() || 'judgment'} was delivered by the ${doc.court} on ${doc.date}. It involves ${partiesData.plaintiff.join(', ')} and ${partiesData.defendant.join(', ')}. The registry handling the case was ${doc.registry || 'unknown registry'}.`
+      };
+
+
+      /** ───── Transform to KenyaLawCase ───── **/
+      const transformedCase: KenyaLawCase = {
+        id: doc.id || caseId,
+        title: doc.title || doc.case_title || 'Unknown Title',
+        citation:
+          doc.citation ||
+          doc.case_citation ||
+          (doc.alternative_names?.[0] || 'No Citation'),
+        year: doc.year || new Date(doc.date || Date.now()).getFullYear(),
+        court: doc.court || doc.court_name || 'Unknown Court',
+        registry: doc.registry || doc.locality || null,
+        summary: doc.summary || doc.case_summary || 'No summary available',
+        overview: overviewText || 'No overview available',
+        relevance: normalizedRelevance,
+        judges: doc.judges || [],
+        attorneys: doc.attorneys || null,
+        parties: partiesData || {},
+        dateDelivered: doc.dateDelivered || doc.date || null,
+        caseNumber: doc.caseNumber || doc.case_number || '',
+        keywords: doc.keywords || [],
+        headnotes: doc.headnotes || doc.head_notes || null,
+        fullText:
+          doc.fullText ||
+          doc.full_text ||
+          doc.content_text ||
+          doc.raw ||
+          doc.judgment ||
+          null,
+        precedents: doc.precedents || doc.cited_cases || [],
+        legislation: doc.legislation || doc.cited_legislation || [],
+        judgmentReferences: judgmentReferences || [],
+        attachments: doc.attachments || [],
+        explainers: explainers
+          ? {
+            relevance: explainers.relevance || '',
+            case_importance: explainers.case_importance || '',
+            highlight: {
+              content: explainers.highlight?.content || []
+            }
+          }
+          : {
+            relevance: '',
+            case_importance: '',
+            highlight: { content: [] }
+          },
+        gpt_reasoning: doc.gpt_reasoning || []
+      };
+
+
+
+      return transformedCase;
+    } catch (error) {
+      console.error('Error fetching case details:', error);
+      return null;
+    } finally {
+      // setIsLoadingCaseDetails(false);
     }
-
-    /** ───── Overview ───── **/
-    let overviewText =
-      doc.overview || doc.case_overview || doc.summary || null;
-    if (!overviewText && (doc.full_text || doc.content_html)) {
-      const firstParagraph = (doc.full_text || doc.content_html)
-        .split(/\n\s*\n/)[0];
-      if (firstParagraph) overviewText = firstParagraph.trim();
-    }
-
-    /** ───── Judgment References ───── **/
-    const judgmentReferences = [
-      ...(doc.references || []),
-      ...(doc.judgment_references || []),
-      ...(doc.references_cases || []),
-      ...(doc.references_legislation || []),
-      ...(doc.citations || [])
-    ].filter(Boolean);
-
-    /** ───── Relevance Normalization ───── **/
-    const normalizedRelevance = doc._score
-      ? parseFloat((doc._score / 100).toFixed(3))
-      : doc.relevance || 0.5;
-
-    /** ───── Explainability ───── **/
-    const explainers = {
-      relevance: `This case matched your query with a normalized score of ${normalizedRelevance}. Original score: ${doc._score || 'N/A'}.`,
-      highlight: doc.highlight?.content?.length
-        ? `Key matching terms: ${doc.highlight.content.join(' ')}`
-        : 'No specific search term highlights available.',
-      case_importance: `This ${doc.nature?.toLowerCase() || 'judgment'} was delivered by the ${doc.court} on ${doc.date}. It involves ${partiesData.plaintiff.join(', ')} and ${partiesData.defendant.join(', ')}. The registry handling the case was ${doc.registry || 'unknown registry'}.`
-    };
-
-    /** ───── Transform to KenyaLawCase ───── **/
-    const transformedCase: KenyaLawCase = {
-      id: doc.id || caseId,
-      title: doc.title || doc.case_title || 'Unknown Title',
-      citation: doc.citation || doc.case_citation || (doc.alternative_names?.[0] || 'No Citation'),
-      year: doc.year || new Date(doc.date || Date.now()).getFullYear(),
-      court: doc.court || doc.court_name || 'Unknown Court',
-      registry: doc.registry || doc.locality || null,
-      summary: doc.summary || doc.case_summary || 'No summary available',
-      overview: overviewText || 'No overview available',
-      relevance: normalizedRelevance,
-      judges: doc.judges || [],
-      attorneys: doc.attorneys || null,
-      parties: partiesData,
-      dateDelivered: doc.dateDelivered || doc.date || null,
-      caseNumber: doc.caseNumber || doc.case_number || [],
-      keywords: doc.keywords || [],
-      headnotes: doc.headnotes || doc.head_notes || null,
-      fullText: doc.fullText || doc.full_text || doc.content_text || doc.raw || doc.judgment || null,
-      precedents: doc.precedents || doc.cited_cases || [],
-      legislation: doc.legislation || doc.cited_legislation || [],
-      judgmentReferences,
-      attachments: doc.attachments || [],
-      explainers
-    };
-
-    return transformedCase;
-  } catch (error) {
-    console.error('Error fetching case details:', error);
-    return null;
-  } finally {
-    // setIsLoadingCaseDetails(false);
-  }
-};
+  };
 
 
 
@@ -307,25 +336,25 @@ const fetchCaseDetails = async (caseId: string): Promise<KenyaLawCase | null> =>
       setSelectedCase(caseDetails);
     }
   };
-    const handleFetchCase = async (caseId: string) => {
+  const handleFetchCase = async (caseId: string) => {
     setIsLoadingCaseDetails(true);
     const result = await fetchCaseDetails(caseId); // Your existing function
     setCaseData(result);
     setIsLoadingCaseDetails(false);
   };
-  const searchOnlineCases = async (filters: typeof caseFilters, page: number): Promise<{cases: KenyaLawCase[], totalResults: number}> => {
+  const searchOnlineCases = async (filters: typeof caseFilters, page: number): Promise<{ cases: KenyaLawCase[], totalResults: number }> => {
     try {
       const params = new URLSearchParams();
-      
+
       // Required search term (use caseType if no specific search term)
       params.append('search_term', filters.searchTerm || caseType);
       params.append('page', page.toString());
       params.append('page_size', casesPerPage.toString());
-      
+
       if (filters.court) params.append('court_filter', filters.court);
       if (filters.year) params.append('year_filter', filters.year);
       if (filters.minRelevance) params.append('min_relevance', (parseFloat(filters.minRelevance) / 100).toString());
-      
+
       // Optional cache settings
       params.append('use_cache', 'true');
       params.append('cache_max_age_hours', '24');
@@ -342,9 +371,12 @@ const fetchCaseDetails = async (caseId: string): Promise<KenyaLawCase | null> =>
       }
 
       const data = await response.json();
-      
+      const rawCases = Array.isArray(data.results)
+        ? data.results.flat()   // flatten nested array
+        : (data.cases || []);
+
       // Transform API response to match our interface
-      const transformedCases: KenyaLawCase[] = (data.results || data.cases || []).map((apiCase: any, index: number) => ({
+      const transformedCases: KenyaLawCase[] = rawCases.map((apiCase: any, index: number) => ({
         id: `${apiCase.id || index}`,
         title: apiCase.title || apiCase.case_title || 'Unknown Title',
         citation: apiCase.citation || apiCase.case_citation || 'No Citation',
@@ -368,22 +400,22 @@ const fetchCaseDetails = async (caseId: string): Promise<KenyaLawCase | null> =>
     return mockLocalCases.filter(caseLaw => {
       // Year filter
       if (filters.year && caseLaw.year.toString() !== filters.year) return false;
-      
+
       // Court filter
       if (filters.court && !caseLaw.court.toLowerCase().includes(filters.court.toLowerCase())) return false;
-      
+
       // Minimum relevance filter
       if (filters.minRelevance && caseLaw.relevance * 100 < Number(filters.minRelevance)) return false;
-      
+
       // Search term filter
       if (filters.searchTerm) {
         const searchTerm = filters.searchTerm.toLowerCase();
-        return caseLaw.title.toLowerCase().includes(searchTerm) || 
-               caseLaw.summary.toLowerCase().includes(searchTerm) ||
-               caseLaw.court.toLowerCase().includes(searchTerm) ||
-               caseLaw.citation.toLowerCase().includes(searchTerm);
+        return caseLaw.title.toLowerCase().includes(searchTerm) ||
+          caseLaw.summary.toLowerCase().includes(searchTerm) ||
+          caseLaw.court.toLowerCase().includes(searchTerm) ||
+          caseLaw.citation.toLowerCase().includes(searchTerm);
       }
-      
+
       return true;
     });
   };
@@ -392,7 +424,7 @@ const fetchCaseDetails = async (caseId: string): Promise<KenyaLawCase | null> =>
     setIsLoadingCases(true);
     try {
       let localResults: KenyaLawCase[] = [];
-      let onlineResults: {cases: KenyaLawCase[], totalResults: number} = { cases: [], totalResults: 0 };
+      let onlineResults: { cases: KenyaLawCase[], totalResults: number } = { cases: [], totalResults: 0 };
 
       // Fetch local cases
       if (filters.searchType === 'local' || filters.searchType === 'both') {
@@ -503,7 +535,7 @@ const fetchCaseDetails = async (caseId: string): Promise<KenyaLawCase | null> =>
     try {
       // Simulate API call delay
       await new Promise(resolve => setTimeout(resolve, 1500));
-      
+
       // Generate mock response based on question
       let responseContent = '';
       if (question.toLowerCase().includes('elements')) {
@@ -515,7 +547,7 @@ const fetchCaseDetails = async (caseId: string): Promise<KenyaLawCase | null> =>
       } else {
         responseContent = `I understand you're asking about ${caseType}. Based on Kenyan jurisprudence and statutory law, I can provide detailed guidance on this matter. The legal framework governing ${caseType} is primarily found in the Penal Code and has been interpreted through various High Court and Court of Appeal decisions.\n\nWould you like me to elaborate on any specific aspect such as the elements of the offense, available defenses, or procedural requirements?`;
       }
-      
+
       const aiResponse: Message = {
         id: (Date.now() + 1).toString(),
         type: 'assistant',
@@ -537,7 +569,37 @@ const fetchCaseDetails = async (caseId: string): Promise<KenyaLawCase | null> =>
     } finally {
       setIsLoading(false);
     }
+  }
+
+  const [loading, setLoading] = useState(false);
+  const [summary, setSummary] = useState(null);
+  const [error, setError] = useState(null);
+
+  const fetchSummary = async (docId: string) => {
+    if (!docId) {
+      setError("Document ID not found");
+      return;
+    }
+
+    if (summary || loading) return;
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const res = await fetch(
+        `https://legalbuddyapi.aiota.online/kenyalaw/document/${docId}/summary?force_refresh=false`
+      );
+      const data = await res.json();
+      setSummary(data.summary);
+    } catch (err) {
+      console.error(err);
+      setError("Failed to load summary");
+    } finally {
+      setLoading(false);
+    }
   };
+
 
   const handleQuickQuestion = async (question: string) => {
     setInputValue(question);
@@ -564,13 +626,6 @@ const fetchCaseDetails = async (caseId: string): Promise<KenyaLawCase | null> =>
                   <DialogTitle className="text-lg font-semibold text-gray-900">
                     {caseTitle} - Legal Research Assistant
                   </DialogTitle>
-                  <p className="text-xs text-gray-600 flex items-center gap-2">
-                    <CheckCircle className="h-3 w-3 text-green-500" />
-                    Powered by Kenya Law Database & AI
-                    <span className="ml-2">
-                      <Badge variant="outline" className="text-xs">Demo</Badge>
-                    </span>
-                  </p>
                 </div>
               </div>
               <Button
@@ -587,11 +642,7 @@ const fetchCaseDetails = async (caseId: string): Promise<KenyaLawCase | null> =>
           {/* Tabs */}
           <div className="border-b bg-gray-50">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-4">
-                <TabsTrigger value="chat" className="flex items-center gap-2">
-                  <MessageSquare className="h-4 w-4" />
-                  Chat
-                </TabsTrigger>
+              <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="cases" className="flex items-center gap-2">
                   <FileText className="h-4 w-4" />
                   Case Law
@@ -600,194 +651,15 @@ const fetchCaseDetails = async (caseId: string): Promise<KenyaLawCase | null> =>
                   <BookOpen className="h-4 w-4" />
                   Statutes
                 </TabsTrigger>
-                <TabsTrigger value="research" className="flex items-center gap-2">
-                  <Search className="h-4 w-4" />
-                  Research
-                </TabsTrigger>
               </TabsList>
             </Tabs>
+
           </div>
 
           {/* Tab Content */}
           <div className="flex-1 min-h-0">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full">
-              <TabsContent value="chat" className="h-full">
-                <div className="flex flex-col h-full">
-                  {/* Chat Messages */}
-                  <div className="flex-1 min-h-0 bg-white">
-                    <ScrollArea className="h-full">
-                      <div className="p-4 space-y-4">
-                        {messages.map((message) => (
-                          <div
-                            key={message.id}
-                            className={cn(
-                              "flex gap-3",
-                              message.type === 'user' ? 'justify-end' : 'justify-start'
-                            )}
-                          >
-                            {message.type === 'assistant' && (
-                              <div className="p-2 bg-blue-100 rounded-lg flex-shrink-0">
-                                <Bot className="h-4 w-4 text-blue-600" />
-                              </div>
-                            )}
-                            
-                            <div className={cn(
-                              "max-w-[75%] space-y-2",
-                              message.type === 'user' ? 'order-first' : 'order-last'
-                            )}>
-                              <Card className={cn(
-                                "p-3",
-                                message.type === 'user' 
-                                  ? 'bg-blue-600 text-white' 
-                                  : 'bg-white border-gray-200'
-                              )}>
-                                <CardContent className="p-0">
-                                  <p className={cn(
-                                    "text-sm leading-relaxed whitespace-pre-wrap",
-                                    message.type === 'user' ? 'text-white' : 'text-gray-800'
-                                  )}>
-                                    {message.content}
-                                  </p>
-                                </CardContent>
-                              </Card>
 
-                              {/* Citations and Confidence for AI responses */}
-                              {message.type === 'assistant' && message.citations && (
-                                <div className="space-y-2">
-                                  <div className="flex items-center gap-2 text-xs text-gray-500">
-                                    <FileText className="h-3 w-3" />
-                                    <span>Sources: {message.citations.join(', ')}</span>
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={() => copyToClipboard(message.citations!.join(', '))}
-                                      className="h-4 w-4 p-0"
-                                    >
-                                      <Copy className="h-3 w-3" />
-                                    </Button>
-                                  </div>
-                                  {message.confidence && (
-                                    <div className="flex items-center gap-2 text-xs text-gray-500">
-                                      <div className="flex items-center gap-1">
-                                        <div className="w-16 bg-gray-200 rounded-full h-1.5">
-                                          <div 
-                                            className="bg-green-500 h-1.5 rounded-full" 
-                                            style={{ width: `${message.confidence * 100}%` }}
-                                          />
-                                        </div>
-                                        <span>{Math.round(message.confidence * 100)}% confidence</span>
-                                      </div>
-                                    </div>
-                                  )}
-                                  <div className="flex items-center gap-2">
-                                    <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                                      <ThumbsUp className="h-3 w-3" />
-                                    </Button>
-                                    <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                                      <ThumbsDown className="h-3 w-3" />
-                                    </Button>
-                                    <Button 
-                                      variant="ghost" 
-                                      size="sm" 
-                                      className="h-6 w-6 p-0"
-                                      onClick={() => copyToClipboard(message.content)}
-                                    >
-                                      <Copy className="h-3 w-3" />
-                                    </Button>
-                                  </div>
-                                </div>
-                              )}
-
-                              <div className={cn(
-                                "text-xs text-gray-400",
-                                message.type === 'user' ? 'text-right' : 'text-left'
-                              )}>
-                                {message.timestamp.toLocaleTimeString()}
-                              </div>
-                            </div>
-
-                            {message.type === 'user' && (
-                              <div className="p-2 bg-gray-100 rounded-lg flex-shrink-0">
-                                <User className="h-4 w-4 text-gray-600" />
-                              </div>
-                            )}
-                          </div>
-                        ))}
-
-                        {/* Quick Questions */}
-                        {messages.length === 1 && (
-                          <div className="flex justify-start">
-                            <div className="max-w-[75%] space-y-3">
-                              <div className="flex items-center gap-2 text-sm text-gray-600">
-                                <Sparkles className="h-4 w-4 text-purple-500" />
-                                <span className="font-medium">Quick Questions about {caseType}</span>
-                              </div>
-                              <div className="grid grid-cols-1 gap-2">
-                                {quickQuestions.map((question, index) => (
-                                  <Card 
-                                    key={index}
-                                    className="cursor-pointer hover:shadow-md transition-shadow border-gray-200"
-                                    onClick={() => handleQuickQuestion(question)}
-                                  >
-                                    <CardContent className="p-3">
-                                      <p className="text-sm text-gray-700 leading-relaxed">
-                                        {question}
-                                      </p>
-                                    </CardContent>
-                                  </Card>
-                                ))}
-                              </div>
-                            </div>
-                          </div>
-                        )}
-
-                        {isLoading && (
-                          <div className="flex gap-3 justify-start">
-                            <div className="p-2 bg-blue-100 rounded-lg flex-shrink-0">
-                              <Bot className="h-4 w-4 text-blue-600" />
-                            </div>
-                            <Card className="bg-white border-gray-200">
-                              <CardContent className="p-3">
-                                <div className="flex items-center gap-2">
-                                  <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
-                                  <span className="text-sm text-gray-600">Researching Kenya Law...</span>
-                                </div>
-                              </CardContent>
-                            </Card>
-                          </div>
-                        )}
-
-                        <div ref={messagesEndRef} />
-                      </div>
-                    </ScrollArea>
-                  </div>
-
-                  {/* Input Area */}
-                  <div className="p-4 border-t bg-white flex-shrink-0">
-                    <div className="flex gap-2">
-                      <Input
-                        value={inputValue}
-                        onChange={(e) => setInputValue(e.target.value)}
-                        onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                        placeholder={`Ask about ${caseType} under Kenyan law...`}
-                        className="flex-1 text-sm"
-                        disabled={isLoading}
-                      />
-                      <Button
-                        onClick={handleSendMessage}
-                        disabled={!inputValue.trim() || isLoading}
-                        className="bg-blue-600 hover:bg-blue-700"
-                      >
-                        {isLoading ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <Send className="h-4 w-4" />
-                        )}
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </TabsContent>
 
               <TabsContent value="cases" className="h-full">
                 <div className="p-4 h-full flex flex-col">
@@ -855,7 +727,7 @@ const fetchCaseDetails = async (caseId: string): Promise<KenyaLawCase | null> =>
                       {relevantCases.totalResults} results found
                       {caseFilters.searchType === 'both' && localCases.length > 0 && (
                         <span className="ml-1">
-                          ({localCases.filter(c => searchLocalCases(debouncedFilters).includes(c)).length} local, 
+                          ({localCases.filter(c => searchLocalCases(debouncedFilters).includes(c)).length} local,
                           {relevantCases.totalResults - localCases.filter(c => searchLocalCases(debouncedFilters).includes(c)).length} online)
                         </span>
                       )}
@@ -880,34 +752,85 @@ const fetchCaseDetails = async (caseId: string): Promise<KenyaLawCase | null> =>
                       {displayedCases.map((caseLaw) => (
                         <Card key={caseLaw.id} className="cursor-pointer hover:shadow-md transition-shadow">
                           <CardContent className="p-4">
-                            <div className="flex items-start justify-between">
-                              <div className="flex-1">
+                            <div className="flex flex-col gap-3">
+                              {/* Case Info */}
+                              <div className="flex flex-col">
                                 <h4 className="font-semibold text-gray-900">{caseLaw.title}</h4>
                                 <p className="text-sm text-gray-600">{caseLaw.citation} ({caseLaw.year})</p>
                                 <p className="text-sm text-gray-500">{caseLaw.court}</p>
                                 <p className="text-sm text-gray-700 mt-2">{caseLaw.summary}</p>
-                                <div className="flex items-center gap-2 mt-2">
-                                  <Badge variant="secondary" className="text-xs">
-                                    {Math.round(caseLaw.relevance * 100)}% relevant
-                                  </Badge>
-                                  <Button 
-                                    variant="ghost" 
-                                    size="sm" 
-                                    className="h-6 text-xs"
-                                    onClick={() => handleFetchCase(caseLaw.id)}
-                                    disabled={isLoadingCaseDetails}
-                                  >
-                                    {isLoadingCaseDetails && selectedCase?.id === caseLaw.id ? (
-                                      <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                                    ) : (
-                                      <ExternalLink className="h-3 w-3 mr-1" />
-                                    )}
-                                    View Full Case
-                                  </Button>
-                                </div>
                               </div>
+
+                              {/* Relevance & Actions */}
+                              <div className="flex items-center gap-2">
+                                <Badge variant="secondary" className="text-xs">
+                                  {Math.round(caseLaw.relevance * 100)}% relevant
+                                </Badge>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-6 text-xs"
+                                  onClick={() => handleFetchCase(caseLaw.id)}
+                                  disabled={isLoadingCaseDetails}
+                                >
+                                  {isLoadingCaseDetails && selectedCase?.id === caseLaw.id ? (
+                                    <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                                  ) : (
+                                    <ExternalLink className="h-3 w-3 mr-1" />
+                                  )}
+                                  View Full Case
+                                </Button>
+                              </div>
+
+                              {/* GPT Reasoning Section */}
+                              {/* {caseLaw.gpt_reasoning?.length > 0 && (
+                                <div className="mt-4 p-3 bg-gray-50 border border-gray-200 rounded-lg shadow-sm">
+                                  <h5 className="font-medium text-gray-800 mb-2">GPT Reasoning</h5>
+                                  <ul className="list-disc list-inside space-y-1">
+                                    {caseLaw.gpt_reasoning.map((reason, idx) => (
+                                      <li key={idx} className="text-sm text-gray-700 whitespace-pre-line">
+                                        {reason}
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )} */}
+                              <div>
+  <button
+    className="text-xs text-blue-600 underline"
+    onMouseEnter={() => fetchSummary(caseLaw.doc_id)}
+  >
+    Hover for AI Summary
+  </button>
+
+  {loading[caseLaw.doc_id] && (
+    <p className="text-xs text-gray-500 mt-1">Loading...</p>
+  )}
+
+  {summaries[caseLaw.doc_id] && (
+    <p className="text-sm text-gray-700 mt-2">{summaries[caseLaw.doc_id]}</p>
+  )}
+</div>
+
+                              {/* Highlight Section */}
+                              {caseLaw.explainers?.highlight?.content?.length > 0 && (
+                                <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg shadow-sm">
+                                  <h5 className="font-medium text-yellow-800 mb-2">Key Highlights</h5>
+                                  <ul className="list-disc list-inside space-y-1">
+                                    {caseLaw.explainers.highlight.content.map((hl, idx) => (
+                                      <li
+                                        key={idx}
+                                        className="text-sm text-gray-800"
+                                        dangerouslySetInnerHTML={{ __html: hl }}
+                                      />
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
                             </div>
                           </CardContent>
+
+
                         </Card>
                       ))}
 
@@ -929,7 +852,7 @@ const fetchCaseDetails = async (caseId: string): Promise<KenyaLawCase | null> =>
                         Previous
                       </Button>
                       <span className="text-sm">
-                        Page {currentPage} of {totalPages} 
+                        Page {currentPage} of {totalPages}
                         <span className="text-gray-500 ml-1">
                           (Showing {displayedCases.length} of {relevantCases.totalResults})
                         </span>
@@ -997,7 +920,7 @@ const fetchCaseDetails = async (caseId: string): Promise<KenyaLawCase | null> =>
                           <h4 className="font-semibold">Search Kenya Law Database</h4>
                         </div>
                         <div className="flex gap-2">
-                          <Input 
+                          <Input
                             placeholder="Search for cases, statutes, or legal concepts..."
                             className="flex-1"
                           />
@@ -1051,9 +974,9 @@ const fetchCaseDetails = async (caseId: string): Promise<KenyaLawCase | null> =>
           <Dialog open={!!caseData} onOpenChange={() => setCaseData(null)}>
             <DialogContent className="max-w-4xl max-h-[90vh] p-0 flex flex-col">
               <ScrollArea className="h-[80vh] p-0">
-                <CaseDetailsDisplay 
-                  caseData={caseData} 
-                  isLoading={isLoadingCaseDetails} 
+                <CaseDetailsDisplay
+                  caseData={caseData}
+                  isLoading={isLoadingCaseDetails}
                 />
               </ScrollArea>
               <div className="border-t p-4 bg-gray-50 flex justify-end">
@@ -1161,8 +1084,8 @@ const fetchCaseDetails = async (caseId: string): Promise<KenyaLawCase | null> =>
                           <h3 className="font-semibold mb-2">Relevance Score</h3>
                           <div className="flex items-center gap-3">
                             <div className="w-32 bg-gray-200 rounded-full h-2">
-                              <div 
-                                className="bg-blue-500 h-2 rounded-full" 
+                              <div
+                                className="bg-blue-500 h-2 rounded-full"
                                 style={{ width: `${selectedCase.relevance * 100}%` }}
                               />
                             </div>
@@ -1237,10 +1160,10 @@ const fetchCaseDetails = async (caseId: string): Promise<KenyaLawCase | null> =>
                           </div>
                         )}
 
-                        {(!selectedCase.precedents || selectedCase.precedents.length === 0) && 
-                         (!selectedCase.legislation || selectedCase.legislation.length === 0) && (
-                          <p className="text-gray-500 italic">No references available</p>
-                        )}
+                        {(!selectedCase.precedents || selectedCase.precedents.length === 0) &&
+                          (!selectedCase.legislation || selectedCase.legislation.length === 0) && (
+                            <p className="text-gray-500 italic">No references available</p>
+                          )}
                       </div>
                     </ScrollArea>
                   </TabsContent>
@@ -1255,16 +1178,16 @@ const fetchCaseDetails = async (caseId: string): Promise<KenyaLawCase | null> =>
                   </Badge>
                 </div>
                 <div className="flex gap-2">
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     size="sm"
                     onClick={() => copyToClipboard(selectedCase.citation)}
                   >
                     <Copy className="h-4 w-4 mr-1" />
                     Copy Citation
                   </Button>
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     size="sm"
                     onClick={() => {
                       const fullCaseText = `${selectedCase.title}\n${selectedCase.citation}\n\n${selectedCase.summary}${selectedCase.fullText ? '\n\n' + selectedCase.fullText : ''}`;
