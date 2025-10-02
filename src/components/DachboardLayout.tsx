@@ -19,7 +19,7 @@ export const DashboardLayout = ({ children, title }: DashboardLayoutProps) => {
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-background">
         <AppSidebar />
-        
+
         <div className="flex-1 flex flex-col">
           {/* Header */}
           <header className="border-b bg-card">
@@ -33,15 +33,28 @@ export const DashboardLayout = ({ children, title }: DashboardLayoutProps) => {
                 <span className="text-muted-foreground hidden sm:inline">|</span>
                 <h1 className="text-lg sm:text-xl font-semibold truncate">{title}</h1>
               </div>
-              
+
               <div className="flex items-center gap-2 sm:gap-4">
                 <div className="flex items-center gap-2">
-                  <User className="h-4 w-4" />
-                  <span className="text-sm font-medium hidden sm:inline">{user?.name}</span>
+                  {user?.avatar_url ? (
+                    <img
+                      src={user.avatar_url}
+                      alt={user.name}
+                      className="h-6 w-6 rounded-full object-cover"
+                    />
+                  ) : (
+                    <User className="h-4 w-4" />
+                  )}
+
+                  <span className="text-sm font-medium hidden sm:inline">
+                    {user?.name}
+                  </span>
+
                   <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded">
                     {user?.role}
                   </span>
                 </div>
+
                 <Button variant="outline" size="sm" onClick={logout} className="text-xs sm:text-sm">
                   <LogOut className="h-4 w-4 mr-1 sm:mr-2" />
                   <span className="hidden sm:inline">Logout</span>
@@ -57,7 +70,7 @@ export const DashboardLayout = ({ children, title }: DashboardLayoutProps) => {
           </main>
         </div>
       </div>
-      
+
       {/* Mobile Bottom Navigation */}
       <MobileBottomNav />
     </SidebarProvider>

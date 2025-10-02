@@ -1,9 +1,9 @@
-import { 
-  Users, 
-  FileText, 
-  Settings, 
-  Shield, 
-  Database, 
+import {
+  Users,
+  FileText,
+  Settings,
+  Shield,
+  Database,
   BarChart3,
   Home,
   Search,
@@ -24,10 +24,9 @@ import {
   ChevronRight,
   Sparkles
 } from 'lucide-react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/lib/utils';
-
 import {
   Sidebar,
   SidebarContent,
@@ -66,7 +65,7 @@ export function AppSidebar() {
   const currentPath = location.pathname;
 
   const isActive = (path: string) => currentPath === path;
-  
+
   // Admin navigation items with section dividers
   const adminNavItems: NavItemWithDivider[] = [
     {
@@ -279,13 +278,13 @@ export function AppSidebar() {
     },
   ];
 
-  const items = hasRole(['admin']) ? adminNavItems : 
-                user?.role === 'lawyer' ? lawyerNavItems :
-                user?.role === 'client' ? clientNavItems :
-                user?.role === 'judicial' ? judicialNavItems : [];
-  
+  const items = hasRole(['admin']) ? adminNavItems :
+    user?.role === 'lawyer' ? lawyerNavItems :
+      user?.role === 'client' ? clientNavItems :
+        user?.role === 'judicial' ? judicialNavItems : [];
+
   const groupLabel = hasRole(['admin']) ? 'Administration' : `${user?.role?.charAt(0).toUpperCase()}${user?.role?.slice(1)} Tools`;
-  
+
   // Role-based theme colors
   const getRoleTheme = () => {
     switch (user?.role) {
@@ -304,14 +303,14 @@ export function AppSidebar() {
 
   const renderNavItem = (item: NavigationItem) => (
     <SidebarMenuItem key={item.title} className="mb-2 last:mb-0">
-      <SidebarMenuButton 
+      <SidebarMenuButton
         asChild
         tooltip={sidebar.state === 'collapsed' ? item.title : undefined}
         className="group relative overflow-hidden transition-transform duration-200 hover:translate-y-[1px] hover:shadow-sm"
       >
-        <NavLink 
-          to={item.url} 
-          end 
+        <NavLink
+          to={item.url}
+          end
           className={({ isActive }) => cn(
             "flex items-center gap-3 rounded-lg px-4 py-2.5 min-h-[50px] text-sm font-medium transition-all duration-200",
             "hover:bg-gradient-to-r hover:from-accent/50 hover:to-accent/30",
@@ -331,7 +330,7 @@ export function AppSidebar() {
           )}>
             <item.icon className="h-4 w-4 text-white" />
           </div>
-          
+
           {sidebar.state !== 'collapsed' && (
             <div className="flex flex-1 items-center justify-between min-w-0">
               <div className="flex flex-col min-w-0 flex-1">
@@ -340,7 +339,7 @@ export function AppSidebar() {
                   <span className="text-xs text-muted-foreground/70 truncate">{item.description}</span>
                 )}
               </div>
-              
+
               {item.badge && (
                 <div className="flex items-center gap-1 flex-shrink-0 ml-2">
                   <span className="inline-flex items-center rounded-full bg-gradient-to-r from-primary/20 to-primary/10 px-2 py-0.5 text-xs font-medium text-primary whitespace-nowrap">
@@ -388,7 +387,7 @@ export function AppSidebar() {
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {items.map((item, index) => 
+              {items.map((item, index) =>
                 'divider' in item ? (
                   <SidebarSeparator key={`divider-${index}`} className="my-2" />
                 ) : (
@@ -402,19 +401,26 @@ export function AppSidebar() {
 
       {sidebar.state !== 'collapsed' && (
         <SidebarFooter className="border-t border-border/50 pt-4">
-          <div className="px-2">
+          <Link to="/app" className="px-2">
             <div className="rounded-lg bg-gradient-to-r from-accent/20 to-accent/10 p-3">
               <div className="flex items-center gap-2">
-                <div className="flex h-6 w-6 items-center justify-center rounded-md bg-gradient-to-br from-yellow-500 to-orange-500">
+                <div className="relative flex h-6 w-6 items-center justify-center rounded-md bg-gradient-to-br from-yellow-500 to-orange-500">
                   <Sparkles className="h-3 w-3 text-white" />
+                  {user && (
+                    <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-green-500 animate-pulse ring-2 ring-white" />
+                  )}
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-xs font-medium text-foreground">AI Assistant</span>
-                  <span className="text-xs text-muted-foreground">Always here to help</span>
+                  <span className="text-xs font-medium text-foreground">
+                    AI Assistant
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    Always here to help
+                  </span>
                 </div>
               </div>
             </div>
-          </div>
+          </Link>
         </SidebarFooter>
       )}
     </Sidebar>

@@ -571,9 +571,9 @@ export default function CaseDialog({ open, onOpenChange, caseType, caseTitle, ca
     }
   }
 
-  const [loading, setLoading] = useState(false);
-  const [summary, setSummary] = useState(null);
-  const [error, setError] = useState(null);
+  const [summaries, setSummaries] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState<Record<string, boolean>>({});
+  const [error, setError] = useState<string | null>(null);
 
   const fetchSummary = async (docId: string) => {
     if (!docId) {
@@ -581,9 +581,10 @@ export default function CaseDialog({ open, onOpenChange, caseType, caseTitle, ca
       return;
     }
 
-    if (summary || loading) return;
+    // Skip if already loaded or currently loading
+    if (summaries[docId] || loading[docId]) return;
 
-    setLoading(true);
+    setLoading(prev => ({ ...prev, [docId]: true }));
     setError(null);
 
     try {
@@ -591,14 +592,15 @@ export default function CaseDialog({ open, onOpenChange, caseType, caseTitle, ca
         `https://legalbuddyapi.aiota.online/kenyalaw/document/${docId}/summary?force_refresh=false`
       );
       const data = await res.json();
-      setSummary(data.summary);
+      setSummaries(prev => ({ ...prev, [docId]: data.summary }));
     } catch (err) {
       console.error(err);
       setError("Failed to load summary");
     } finally {
-      setLoading(false);
+      setLoading(prev => ({ ...prev, [docId]: false }));
     }
   };
+
 
 
   const handleQuickQuestion = async (question: string) => {
@@ -796,21 +798,24 @@ export default function CaseDialog({ open, onOpenChange, caseType, caseTitle, ca
                                 </div>
                               )} */}
                               <div>
-  <button
-    className="text-xs text-blue-600 underline"
-    onMouseEnter={() => fetchSummary(caseLaw.doc_id)}
-  >
-    Hover for AI Summary
-  </button>
+                                <button
+                                  className="text-xs text-blue-600 underline"
+                                  onMouseEnter={() => fetchSummary(caseLaw.id)}
+                                >
+                                  Hover for AI Summary
+                                </button>
 
-  {loading[caseLaw.doc_id] && (
-    <p className="text-xs text-gray-500 mt-1">Loading...</p>
-  )}
+                                {loading[caseLaw.id] && (
+                                  <p className="text-xs text-gray-500 mt-1">Loading...</p>
+                                )}
 
-  {summaries[caseLaw.doc_id] && (
-    <p className="text-sm text-gray-700 mt-2">{summaries[caseLaw.doc_id]}</p>
-  )}
-</div>
+                                {summaries[caseLaw.id] && (
+                                  <p className="text-sm text-gray-700 mt-2">
+                                    {summaries[caseLaw.id]}
+                                  </p>
+                                )}
+
+                              </div>
 
                               {/* Highlight Section */}
                               {caseLaw.explainers?.highlight?.content?.length > 0 && (

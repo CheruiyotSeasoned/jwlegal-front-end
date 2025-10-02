@@ -30,14 +30,21 @@ import { Navigate } from 'react-router-dom';
 import { useState } from 'react';
 
 const UserDashboard = () => {
-  const { hasRole, user } = useAuth();
+  const { hasRole, user, loading } = useAuth();
+
   const [notifications] = useState([
     { id: 1, message: 'New case assignment received', time: '5 min ago', unread: true },
     { id: 2, message: 'Client message in Case #TF-2024-001', time: '1 hour ago', unread: true },
     { id: 3, message: 'Research completed for Case #CD-2024-015', time: '2 hours ago', unread: false },
   ]);
 
-  if (!hasRole(['lawyer', 'client', 'judicial'])) {
+  // Wait for user to load before deciding
+  if (loading) {
+    return <div className="p-6">Loading...</div>; 
+  }
+
+  // After loading, if still not logged in or no valid role
+  if (!user || !hasRole(['lawyer', 'client', 'judicial'])) {
     return <Navigate to="/login" replace />;
   }
 

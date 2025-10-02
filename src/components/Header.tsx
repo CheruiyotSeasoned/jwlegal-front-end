@@ -3,10 +3,11 @@ import { Menu, User } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import Logo from "@/assets/yellow-blue-removebg-preview.png";
+import { useAuth } from "@/hooks/useAuth";
 
 export const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-
+  const { user } = useAuth();
   return (
     <header className="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
       <div className="container mx-auto px-4 lg:px-6">
@@ -34,15 +35,27 @@ export const Header = () => {
 
           {/* Desktop CTA */}
           <div className="hidden md:flex items-center space-x-3">
-            <Link to="/login">
-              <Button
-                variant="outline"
-                className="border-[#003580] text-[#003580] hover:bg-[#003580] hover:text-white"
-              >
-                <User className="h-4 w-4 mr-2" />
-                Sign In
-              </Button>
-            </Link>
+            {!user ? (
+              // 👤 Not logged in → Show Sign In
+              <Link to="/login" className="block">
+                <Button className="w-full border-[#003580] text-white hover:bg-[#003580] hover:text-white">
+                  <User className="h-4 w-4 mr-2" />
+                  Sign In
+                </Button>
+              </Link>
+            ) : (
+              // ✅ Logged in → Show Dashboard
+              <Link to="/user-dashboard" className="block">
+                <Button className="w-full border-green-600 text-green-600 hover:bg-green-600 hover:text-white flex items-center gap-2">
+                  <img
+                    src={user.avatar_url || "/default-avatar.png"}
+                    alt="User avatar"
+                    className="h-6 w-6 rounded-full object-cover"
+                  />
+                  <span>Dashboard</span>
+                </Button>
+              </Link>
+            )}
             <Link to="/signup">
               <Button className="bg-[#FEA919] hover:bg-[#e68c0c] text-white">
                 Get Started
@@ -75,12 +88,23 @@ export const Header = () => {
                 </a>
               ))}
               <div className="pt-3 space-y-2">
-                <Link to="/login" className="block">
-                  <Button className="w-full border-[#003580] text-[#003580] hover:bg-[#003580] hover:text-white">
-                    <User className="h-4 w-4 mr-2" />
-                    Sign In
-                  </Button>
-                </Link>
+                {!user ? (
+                  // 👤 Not logged in → Show Sign In
+                  <Link to="/login" className="block">
+                    <Button className="w-full border-[#003580] text-[#003580] hover:bg-[#003580] hover:text-white">
+                      <User className="h-4 w-4 mr-2" />
+                      Sign In
+                    </Button>
+                  </Link>
+                ) : (
+                  // ✅ Logged in → Show Dashboard
+                  <Link to="/dashboard" className="block">
+                    <Button className="w-full border-green-600 text-green-600 hover:bg-green-600 hover:text-white">
+                      <User className="h-4 w-4 mr-2" />
+                      Dashboard
+                    </Button>
+                  </Link>
+                )}
                 <Link to="/signup" className="block">
                   <Button className="w-full bg-[#FEA919] hover:bg-[#e68c0c] text-white">
                     Get Started
