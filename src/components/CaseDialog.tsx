@@ -589,7 +589,7 @@ export default function CaseDialog({ open, onOpenChange, caseType, caseTitle, ca
 
     try {
       const res = await fetch(
-        `https://legalbuddyapi.aiota.online/kenyalaw/document/${docId}/summary?force_refresh=false`
+        `https://api.legalbuddy.work/kenyalaw/document/${docId}/summary?force_refresh=false`
       );
       const data = await res.json();
       setSummaries(prev => ({ ...prev, [docId]: data.summary }));

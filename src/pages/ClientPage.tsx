@@ -509,7 +509,7 @@ const Index = () => {
                     setIsLoading(true);
                     try {
                         const res = await fetch(
-                            "https://legalbuddyapi.aiota.online/legal/api/transcribe",
+                            "https://api.legalbuddy.work/legal/api/transcribe",
                             {
                                 method: "POST",
                                 body: formData,
