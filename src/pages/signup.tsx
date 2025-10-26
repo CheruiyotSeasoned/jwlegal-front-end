@@ -14,11 +14,11 @@ const Signup = () => {
     name: '',
     email: '',
     password: '',
-    role: 'CLIENT', // Changed to match backend enum
+    role: 'client', // Changed to match backend enum
     phone: '',
   });
   const [isLoading, setIsLoading] = useState(false);
-  const [googleRole, setGoogleRole] = useState('CLIENT'); // Separate state for Google signup role
+  const [googleRole, setGoogleRole] = useState('client'); // Separate state for Google signup role
   const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -152,10 +152,10 @@ const Signup = () => {
                   onChange={handleChange}
                   className="w-full border rounded-md h-10 px-3 text-gray-700"
                 >
-                  <option value="CLIENT">Client</option>
-                  <option value="LAWYER">Lawyer</option>
-                  <option value="ADMIN">Admin</option>
-                  <option value="JUDICIAL">Judicial Officer</option>
+                  <option value="client">Client</option>
+                  <option value="lawyer">Lawyer</option>
+                  <option value="admin">Admin</option>
+                  <option value="judicial">Judicial Officer</option>
                 </select>
               </div>
               <div>
