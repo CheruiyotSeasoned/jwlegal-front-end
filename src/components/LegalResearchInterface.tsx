@@ -110,7 +110,7 @@ interface ConversationSummary {
 }
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-const { token } = useAuth();
+
 const REQUEST_TYPES = [
     { value: "legal_opinion", label: "Legal Opinion", icon: Scale, description: "Get comprehensive legal analysis and opinion" },
     { value: "case_analysis", label: "Case Analysis", icon: Gavel, description: "Analyze case facts and legal implications" },
@@ -202,7 +202,7 @@ export default function AILegalResearchChat() {
                     {
                         headers: {
                         "accept": "application/json",
-                        "Authorization": `Bearer ${token}`
+                        "Authorization": `Bearer null`
                         }
                     }
                     );
